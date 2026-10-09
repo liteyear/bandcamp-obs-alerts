@@ -154,7 +154,7 @@ const server = http.createServer(async (req, res) => {
   if (req.headers.origin && req.headers.origin !== origin) return json(res, 403, { error: 'Invalid origin' });
   const url = new URL(req.url, origin);
   try {
-    if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { app: 'bandcamp-obs-alerts', version: '1.0.0' });
+    if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { app: 'bandcamp-obs-alerts', version: '1.0.1' });
     if (req.method === 'GET' && url.pathname === '/events') {
       if (url.searchParams.get('key') !== config.viewerKey) return json(res, 403, { error: 'Invalid overlay key' });
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Connection': 'keep-alive' });

@@ -62,3 +62,55 @@ test('lookalike DKIM domains and upstream forged authentication headers are reje
   const source = mail(text, 'dkim=fail header.i=@bandcamp.com').replace('MIME-Version:', 'Authentication-Results: mx.google.com; dkim=pass header.i=@bandcamp.com\r\nMIME-Version:');
   assert.equal(await parseReceipt(source), null);
 });
+
+const trackReceipt = `Greetings Example Artist,
+
+BandcampFan (buyer@example.test) just paid $2.12 USD for:
+
+This digital or unshipped item:
+
+   Example Artist, Example Track, digital track, $2.00 USD + 0.12 tax*
+   https://exampleartist.bandcamp.com
+
+Subtotal: 1.50
+Additional fan contribution: 0.50
+Your share: 1.54 USD
+
+Thanks for using Bandcamp!
+
+--- cut here ---
+Payment id: 1234567890
+Fan Email: buyer@example.test
+Item1Artist: Example Artist
+Item1Store URL: https://exampleartist.bandcamp.com/track/example-track
+Item1Quantity: 1
+Item1Price: $2.00
+
+Purchased 09 October 2026 05:42 AM ~ Bandcamp transaction ID 1234567890
+`;
+test('artist-first paid track receipt with tax and email.bandcamp.com DKIM', async () => {
+  const parsed = await parseReceipt(mail(trackReceipt, 'dkim=pass header.i=@email.bandcamp.com header.s=smtpapi; dkim=pass header.i=@sendgrid.info; dmarc=pass header.from=bandcamp.com'));
+  assert.equal(parsed.title, 'Example Track');
+  assert.equal(parsed.buyer, 'BandcampFan');
+  assert.equal(parsed.amount, 2.12);
+  assert.equal(parsed.currency, 'USD');
+  assert.ok(!JSON.stringify(parsed).includes('buyer@example.test'));
+});
+test('artist-first receipt supports albums, commas in titles, and HTML', async () => {
+  assert.equal(parseText(trackReceipt.replace('digital track', 'digital album')).title, 'Example Track');
+  assert.equal(parseText(trackReceipt.replace('Example Track, digital', 'Track, Part II, digital')).title, 'Track, Part II');
+  const html = trackReceipt.trim().split(/\n/).map(line => `<div>${line || '<br>'}</div>`).join('');
+  assert.equal((await parseReceipt(mail(html, 'dkim=pass header.d=email.bandcamp.com', undefined, 'text/html'))).title, 'Example Track');
+});
+test('artist-first receipt requires correct artist, paid sale and transaction footer', () => {
+  assert.equal(parseText(trackReceipt.replaceAll('Example Artist', 'Another Artist')), null);
+  assert.equal(parseText(trackReceipt.replace('just paid $2.12', 'just paid $0.00')), null);
+  assert.equal(parseText(trackReceipt.replace('just paid', 'was refunded')), null);
+  assert.equal(parseText(trackReceipt.replace('Purchased 09 October 2026 05:42 AM ~ Bandcamp transaction ID 1234567890', '')), null);
+  assert.equal(parseText(trackReceipt.replace('digital track', 'T-shirt')), null);
+});
+test('email.bandcamp.com lookalikes and mismatched DKIM clauses fail', async () => {
+  for (const auth of ['dkim=pass header.i=@email.bandcamp.com.evil.test', 'dkim=pass header.i=@evilbandcamp.com', 'dkim=pass header.i=@sendgrid.info; dkim=fail header.i=@email.bandcamp.com', 'dkim=pass header.i=@other.bandcamp.com']) {
+    assert.equal(await parseReceipt(mail(trackReceipt, auth)), null);
+  }
+});

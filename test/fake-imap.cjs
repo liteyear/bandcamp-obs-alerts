@@ -2,7 +2,7 @@
 const Module = require('node:module');
 const { EventEmitter } = require('node:events');
 const originalLoad = Module._load;
-function receipt(artist = 'Example Artist') { return Buffer.from(`From: Bandcamp <noreply@bandcamp.com>\r\nAuthentication-Results: mx.google.com; dkim=pass header.i=@bandcamp.com\r\nMessage-ID: <one-sale@example.test>\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nGreetings ${artist},\n\nBandcampFan (buyer@example.test) just paid 11.00 USD for:\n\nExample Album by ${artist}, Digital album $11.00 USD\n\nThis sale was completed on October 8, 2026.\n`); }
+function receipt(artist = 'Example Artist') { return Buffer.from(`From: Bandcamp <noreply@bandcamp.com>\r\nAuthentication-Results: mx.google.com; dkim=pass header.i=@email.bandcamp.com\r\nMessage-ID: <one-sale@example.test>\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nGreetings ${artist},\n\nBandcampFan (buyer@example.test) just paid $2.12 USD for:\n\nThis digital or unshipped item:\n\n   ${artist}, Example Track, digital track, $2.00 USD + 0.12 tax*\n\nSubtotal: 1.50\nYour share: 1.54 USD\n\nPurchased 09 October 2026 05:42 AM ~ Bandcamp transaction ID 1234567890\n`); }
 class FakeImap extends EventEmitter {
   constructor() { super(); this.usable = false; this.latest = 100; this.records = new Map(); this.timers = []; }
   async connect() { this.usable = true; }

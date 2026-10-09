@@ -1,10 +1,11 @@
-# Validation — public package 1.0.0
+# Validation — public package 1.0.1
 
-Prepared October 8, 2026. Tested locally on Linux with Node.js 24.19.0; macOS end-user launch needs a separate device check.
+October 9, 2026. Tested locally on Linux with Node.js 24.19.0.
 
-- All 11 automated tests pass. These cover plain-text and HTML receipts, exact configurable artist matching, accented and punctuated names, label greetings, another artist's receipt, nonpurchase messages, sender / DKIM checks, duplicate receipt handling, private control access, source keys, and a synthetic read-only IMAP connection.
-- Chromium preview shows the configured artist and correct purchase wording at 900 × 260. The card has no content overflow. Username / amount toggles work, the alert disappears on time, and the browser reports no script errors.
-- JavaScript syntax and Bash launcher syntax checks pass. The GitHub Actions YAML parses locally. GitHub Actions itself has not run yet because this package has not been published to a repository.
-- The release builder uses explicit allowlists, separates bundled end-user dependencies from source, preserves launcher execution permissions, excludes local state / credentials, and emits verified SHA-256 checksums.
+- The uploaded real track-sale email was rejected by v1.0.0 and is now parsed as the correct artist, title, username and $2.12 total. Raw email and private identifiers are excluded from all artifacts.
+- All 15 automated tests pass, covering old and new layouts, HTML, literal artist matching, zero amounts, refunds, authentication failures and lookalike domains.
+- A synthetic read-only IMAP server delivers a redacted modern track receipt; the integration test checks the emitted OBS event, duplicate suppression and exclusion of other artists.
+- Original overlay preview checks remain applicable; no visual or animation code changed.
+- Release archives preserve executable launcher permissions, include production dependencies only in the Mac archive, exclude credentials and receipts, and have verified checksums.
 
-The artist-specific predecessor was reported working by its user on macOS. That does not substitute for a real purchase test of this configurable public package. New Gmail account layouts and receipt types need their own verification. No CPU benchmark is claimed.
+A fresh live purchase with this update running on the user's Mac has not yet been performed. v1.0.0 CI passed on GitHub; v1.0.1 CI is checked when pushed. No CPU benchmark is claimed.

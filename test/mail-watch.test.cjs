@@ -21,6 +21,16 @@ test('new IMAP events advance a stale UID snapshot, deduplicate receipts, and ex
   assert.equal(state.received, 1);
   assert.equal(state.ignored, 1);
   assert.equal(state.queued, 0);
+  const controller = new AbortController();
+  const viewerKey = new URLSearchParams(new URL(state.overlayUrl).hash.slice(1)).get('key');
+  const events = await fetch(base + '/events?key=' + viewerKey, { signal: controller.signal });
+  const reader = events.body.getReader();
+  const chunk = await reader.read();
+  const alert = JSON.parse(new TextDecoder().decode(chunk.value).split('data: ')[1].split('\n\n')[0]);
+  assert.equal(alert.title, 'Example Track');
+  assert.equal(alert.amount, 2.12);
+  assert.equal(alert.buyer, 'BandcampFan');
+  controller.abort();
   const saved = fs.readFileSync(path.join(dir, 'settings.json'), 'utf8');
   assert.ok(!saved.includes('abcdefghijklmnop'));
   assert.ok(!saved.includes('buyer@example'));

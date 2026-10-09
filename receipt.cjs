@@ -11,11 +11,18 @@ function parseText(text, artistName) {
   text = text.normalize('NFC').replace(/\r/g, '').replace(/\u00a0/g, ' ');
   // Label / account greetings can differ; match the artist on the purchased item.
   if (!/Greetings\s+[^,\n]+\s*,/iu.test(text)) return null;
-  const sale = text.match(/(?:^|\n)\s*([^\n]+?)\s*\(([^\n]*@[^\n]*)\)\s+just paid\s+([\d,.]+)\s+([A-Z]{3})\s+for\s*:/i);
-  if (!sale || !/This sale was completed\s+on/i.test(text)) return null;
+  const sale = text.match(/(?:^|\n)\s*([^\n]+?)\s*\(([^\n]*@[^\n]*)\)\s+just paid\s+[$€£¥]?\s*([\d,.]+)\s+([A-Z]{3})\s+for\s*:/i);
+  if (!sale) return null;
   const after = text.slice(sale.index + sale[0].length).replace(/(?:<https?:\/\/[^>]+>|\[https?:\/\/[^\]]+\])/g, '').trim();
   const artistPattern = escapeRegex(artist).replace(/ /g, '\\s+');
-  const item = after.match(new RegExp(`^([\\s\\S]{1,600}?)\\s+by\\s+${artistPattern}(?=\\s*(?:,|\\n|$))`, 'iu'));
+  // Bandcamp also sends artist-first digital item receipts with a transaction footer.
+  // Keep the two completion markers scoped to their corresponding item layout.
+  const legacy = /This sale was completed\s+on/i.test(text)
+    ? after.match(new RegExp(`^([\\s\\S]{1,600}?)\\s+by\\s+${artistPattern}(?=\\s*(?:,|\\n|$))`, 'iu')) : null;
+  const modern = /^Purchased [^\n]+~ Bandcamp transaction ID \d+\s*$/mi.test(text)
+    && /^This digital or unshipped item:\s*$/mi.test(after)
+    ? after.split(/\n\s*Subtotal:/i)[0].match(new RegExp(`^\\s*${artistPattern},\\s*([^\\n]{1,600}?),\\s*digital (?:track|album),\\s*[$€£¥]?\\s*[\\d,.]+(?:\\s|$)`, 'imu')) : null;
+  const item = legacy || modern;
   if (!item) return null;
   const amount = Number(sale[3].replace(/,/g, ''));
   if (!Number.isFinite(amount) || amount <= 0) return null;
@@ -29,7 +36,8 @@ async function parseReceipt(source, { artistName } = {}) {
   if (senders.length !== 1 || senders[0].address?.toLowerCase() !== 'noreply@bandcamp.com') return null;
   const auth = mail.headerLines.filter(h => h.key === 'authentication-results').map(h => h.line.replace(/\r?\n\s+/g, ' '));
   const gmailAuth = auth.find(h => /^Authentication-Results:\s*mx\.google\.com\s*;/i.test(h));
-  if (!gmailAuth || !/dkim=pass\b[^;]*(?:header\.i=@bandcamp\.com|header\.d=bandcamp\.com)(?=[\s;]|$)/i.test(gmailAuth)) return null;
+  if (!gmailAuth || !gmailAuth.split(';').some(clause => /\bdkim=pass\b/i.test(clause)
+    && /\bheader\.(?:i=@|d=)(?:email\.)?bandcamp\.com(?=[\s;]|$)/i.test(clause))) return null;
   const event = parseText(mail.text || '', artistName);
   return event ? { ...event, receiptId: mail.messageId || null } : null;
 }

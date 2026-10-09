@@ -1,11 +1,13 @@
-Bandcamp purchase alerts for OBS on macOS, free and open source.
+Fixes missed real Bandcamp purchase alerts in v1.0.0.
 
-Download **bandcamp-obs-alerts-mac-v1.0.0.zip**, unzip it, and double-click **Start Bandcamp Alerts.command**. The setup page walks you through entering your artist name, connecting the Gmail inbox receiving your Bandcamp receipts, and adding one Browser Source to OBS.
+Bandcamp sends more than one receipt layout. v1.0.1 accepts artist-first digital track/album receipts, dollar-prefixed paid totals, transaction footers, and Gmail-verified `email.bandcamp.com` DKIM signatures. Existing album receipts remain supported.
 
-The release includes silent transparent alerts, purchase queuing, duplicate protection, and options to hide usernames / amounts or adjust display duration. Intel and Apple Silicon Macs are supported with macOS 11 or newer.
+Download **bandcamp-obs-alerts-mac-v1.0.1.zip**, unzip it, and launch **Start Bandcamp Alerts.command**.
 
-Google app passwords are required. The credential is stored in your Mac's Keychain. Standard digital-album receipt layouts are tested; alternate receipt types are not yet validated. See README for matching behavior, privacy, setup, and uninstall instructions.
+**Updating:** open the existing control page and click **Quit alert helper** first. Then launch from the new extracted folder. Your saved Gmail connection, preferences, and OBS URL are preserved. The launcher reuses a running helper, so quitting the old version is required.
 
-This package is not Apple signed or notarized. A real purchase test on your own account is recommended before streaming.
+Verified against a supplied real track-sale email and 15 automated tests, including read-only IMAP arrival, deduplication, and delivery to the OBS event stream. Private receipt details are not included in this release. A new live purchase on the updated Mac remains to be verified.
 
-**Developers:** GitHub's source download needs `npm ci --ignore-scripts`. The release ZIP already includes the production dependencies.
+The amount shown is the total charged, including tax when present. Gmail app passwords are required; macOS 11+, Intel and Apple Silicon supported. The package is unsigned and not notarized.
+
+Source and SHA-256 checksums are attached. See README for setup and receipt limitations.

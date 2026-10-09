@@ -8,13 +8,13 @@ A lightweight local helper watches Bandcamp artist sale receipts in Gmail and se
 
 ## Download and install
 
-Download **[bandcamp-obs-alerts-mac-v1.0.0.zip](https://github.com/liteyear/bandcamp-obs-alerts/releases/download/v1.0.0/bandcamp-obs-alerts-mac-v1.0.0.zip)** from the **[Releases page](https://github.com/liteyear/bandcamp-obs-alerts/releases/latest)**. **GitHub's “Download ZIP” is source code**, and does not include the preinstalled dependencies in the release package.
+Download **[bandcamp-obs-alerts-mac-v1.0.1.zip](https://github.com/liteyear/bandcamp-obs-alerts/releases/download/v1.0.1/bandcamp-obs-alerts-mac-v1.0.1.zip)** from the **[Releases page](https://github.com/liteyear/bandcamp-obs-alerts/releases/latest)**. **GitHub's “Download ZIP” is source code**, and does not include the preinstalled dependencies in the release package.
 
 Requirements: macOS 11 or newer, Intel or Apple Silicon, OBS with Browser Source support, an internet connection, and a Gmail account that receives your Bandcamp artist sale emails and supports Google app passwords. Windows and Linux desktop installers are not included.
 
 1. Unzip the release package. Keep its folder intact.
 2. Double-click **Start Bandcamp Alerts.command**. First launch downloads a checksum-verified Node.js runtime from nodejs.org and opens a local setup page. A Terminal window opens, but you do not need to type commands.
-3. Enter your **artist name exactly as it appears after “by” in a sale receipt**. This determines both receipt matching and the on-screen artist name. Artist names containing punctuation and Unicode characters are supported. One artist is watched per installation.
+3. Enter your **artist name exactly as it appears on the purchased item in a sale receipt (after “by” or before the item title)**. This determines both receipt matching and the on-screen artist name. Artist names containing punctuation and Unicode characters are supported. One artist is watched per installation.
 4. Enter the Gmail address that receives the artist's Bandcamp sale receipts. It may be the email associated with your PayPal account; check an actual sale notification rather than guessing.
 5. Create a Google app password for that same Gmail account and enter it in the setup page. Click **Connect Gmail**.
 6. Add an OBS Browser Source named **Bandcamp OBS Alerts**. Paste the URL from the setup page. Set **width 900**, **height 260**, and **30 FPS**. Leave OBS's existing Custom CSS alone.
@@ -48,9 +48,9 @@ To change artists, disconnect Gmail first, change the artist name, and reconnect
 ## Purchase detection and limits
 
 - Gmail IMAP IDLE wakes the helper on incoming mail; a once-a-minute status check backs it up.
-- Only `noreply@bandcamp.com` messages with a passing Bandcamp DKIM result from Gmail are accepted.
+- Only `noreply@bandcamp.com` messages with a passing DKIM result for `bandcamp.com` or `email.bandcamp.com` from Gmail are accepted.
 - Receipt matching uses the **artist on the purchased item**, so a label greeting or shared inbox can have a different recipient name.
-- The parser supports the standard `just paid … for:` / `item by Artist` / `This sale was completed on` receipt layout, in plain text or HTML. Digital album fixtures are tested. Track receipts using that same layout can parse, but **merch, gifts, subscriptions, baskets, alternate languages, and changed receipt layouts have not been validated**. Unrecognized messages are ignored.
+- The parser supports both the `item by Artist` / `This sale was completed on` layout and the artist-first `Artist, Item, digital track/album` layout with a Bandcamp transaction footer, in plain text or HTML. The latter was verified against a supplied real track-sale email. The displayed amount is the total paid in the receipt, including tax when present. **merch, gifts, subscriptions, baskets, alternate languages, and changed receipt layouts have not been validated**. Unrecognized messages are ignored.
 - Payout notifications, refunds, and zero-price downloads do not create purchase alerts.
 - Detection begins with **new mail** each time the helper starts or you explicitly reconnect. Old emails and purchases received while it was stopped are skipped.
 - Brief network interruptions within a running session catch up after reconnecting. Pending alerts are kept in memory, not replayed after a restart.
