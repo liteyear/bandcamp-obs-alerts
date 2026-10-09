@@ -1,0 +1,19 @@
+{
+  "name": "bandcamp-obs-alerts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Free local Bandcamp purchase alerts for OBS on macOS",
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node --test test/*.test.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "imapflow": "2.3.0",
+    "mailparser": "3.9.37"
+  },
+  "license": "MIT",
+  "author": "Liteyear Design"
+}

@@ -1,0 +1,27 @@
+name: Validate
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - name: Check launcher syntax
+        run: bash -n 'Start Bandcamp Alerts.command'
+      - name: Build and verify release archives
+        run: |
+          python3 scripts/build_release.py
+          python3 scripts/verify_release.py
